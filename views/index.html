@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTMX Go Fiber PostgreSQL</title>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                clifford: '#da373d',
+              }
+            }
+          }
+        }
+      </script>
+</head>
+<body>
+    <h1 class="text-3xl font-bold underline text-clifford">
+        Items
+      </h1>
+    <ul>
+        <li htmx="get:/items" hx-target="#items-list" hx-swap="outerHTML">
+            <a href="/">Load Items</a>
+        </li>
+    </ul>
+    <div id="items-list">
+        <ul>
+            {{ range .Items }}
+            <li>{{ .ID }}: {{ .Name }}</li>
+            {{ end }}
+        </ul>
+    </div>
+</body>
+</html>
