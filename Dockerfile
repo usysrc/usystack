@@ -1,5 +1,5 @@
 # Use an official Golang runtime as the base image
-FROM golang:1.20 AS builder
+FROM golang:1.21 AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -8,13 +8,13 @@ WORKDIR /app
 COPY . .
 
 # Get the dependencies
-RUN go mod tidy
+# RUN go mod tidy
 
 # Build the Go application
 RUN go build -o app
 
 # Use a smaller base image for the final image
-FROM golang:1.20
+FROM golang:1.21
 
 # Set the working directory inside the container
 WORKDIR /app
