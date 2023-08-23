@@ -21,9 +21,12 @@
         Items
       </h1>
     <ul>
-        <li htmx="get:/items" hx-target="#items-list" hx-swap="outerHTML">
+        <!-- <li htmx="get:/items" hx-target="#items-list" hx-swap="outerHTML">
             <a href="/">Load Items</a>
-        </li>
+        </li> -->
+        <button hx-post="/items">
+            Click Me
+        </button>
     </ul>
     <div id="items-list">
         <ul>
