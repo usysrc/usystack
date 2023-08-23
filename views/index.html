@@ -20,14 +20,10 @@
     <h1 class="text-3xl font-bold underline text-clifford">
         Items
       </h1>
-    <ul>
-        <!-- <li htmx="get:/items" hx-target="#items-list" hx-swap="outerHTML">
-            <a href="/">Load Items</a>
-        </li> -->
-        <button hx-post="/items">
-            Click Me
-        </button>
-    </ul>
+      <form hx-post="/add-item" hx-ext="json" hx-target="body">
+        <input type="text" name="name" placeholder="Item Name" required>
+        <button type="submit">Add Item</button>
+    </form>
     <div id="items-list">
         <ul>
             {{ range .Items }}

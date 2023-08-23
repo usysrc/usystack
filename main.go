@@ -40,28 +40,27 @@ func main() {
 
 	// Define routes
 	app.Get("/", indexHandler)
-	app.Post("/items", itemHandler)
+	app.Post("/add-item", itemHandler)
 
 	// Start server
 	app.Listen(":3000")
 }
 
+// add items to the db
 func itemHandler(c *fiber.Ctx) error {
-	item := Item{}
-	if err := c.BodyParser(item); err != nil {
+	fmt.Print(string(c.Body()))
+	var newItem Item
+	if err := c.BodyParser(&newItem); err != nil {
 		c.Status(500)
 		return err
 	}
-	_, err := db.Query(context.Background(), fmt.Sprintf("INSERT into items (name) VALUES ('%s')", "name"))
+
+	_, err := db.Exec(context.Background(), "INSERT into items (name) VALUES ($1)", newItem.Name)
 	if err != nil {
 		c.Status(500)
 		return err
 	}
-	if err := c.SendString("ho"); err != nil {
-		c.Status(500)
-		return err
-	}
-	return nil
+	return indexHandler(c)
 }
 
 func indexHandler(c *fiber.Ctx) error {
@@ -88,5 +87,5 @@ func indexHandler(c *fiber.Ctx) error {
 
 type Item struct {
 	ID   int
-	Name string
+	Name string `json:"name"`
 }
