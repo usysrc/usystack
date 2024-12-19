@@ -1,8 +1,8 @@
 -- init.sql
 
 -- Create the items table
-CREATE TABLE items (
-    id serial PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL
 );
 

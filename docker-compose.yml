@@ -1,17 +1,4 @@
 services:
-  postgres:
-    hostname: usystack-db
-    container_name: usystack-db
-    image: postgres:latest
-    environment:
-      POSTGRES_DB: dbname
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
   app:
     hostname: usystack-app
     container_name: usystack-app
@@ -19,7 +6,5 @@ services:
       context: .
     ports:
       - "3000:3000"
-    depends_on:
-      - postgres
-volumes:
-  postgres-data:
+    volumes:
+      - ./data.db:/app/data.db

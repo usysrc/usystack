@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -10,20 +10,30 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
-	"github.com/jackc/pgx/v4"
+	_ "github.com/mattn/go-sqlite3"
 	slogfiber "github.com/samber/slog-fiber"
 )
 
-var db *pgx.Conn
+var db *sql.DB
 
 func main() {
 	// Connect to PostgreSQL
-	conn, err := pgx.Connect(context.Background(), "postgresql://username:password@localhost/dbname")
+	conn, err := sql.Open("sqlite3", "data.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 	db = conn
-	defer db.Close(context.Background())
+	defer db.Close()
+
+	// load 'init.sql' and execute it
+	file, err := os.ReadFile("init.sql")
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = db.Exec(string(file))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Initialize standard Go html template engine
 	engine := html.New("./views", ".html")
@@ -35,7 +45,7 @@ func main() {
 	})
 
 	// Add structured logging middleware
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 	app.Use(slogfiber.New(logger))
 
 	// Define routes
@@ -55,7 +65,7 @@ func itemHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	_, err := db.Exec(context.Background(), "INSERT into items (name) VALUES ($1)", newItem.Name)
+	_, err := db.Exec("INSERT into items (name) VALUES ($1)", newItem.Name)
 	if err != nil {
 		c.Status(500)
 		return err
@@ -64,7 +74,7 @@ func itemHandler(c *fiber.Ctx) error {
 }
 
 func indexHandler(c *fiber.Ctx) error {
-	rows, err := db.Query(context.Background(), "SELECT id, name FROM items")
+	rows, err := db.Query("SELECT id, name FROM items")
 	if err != nil {
 		return err
 	}
@@ -75,7 +85,8 @@ func indexHandler(c *fiber.Ctx) error {
 		var item Item
 		err := rows.Scan(&item.ID, &item.Name)
 		if err != nil {
-			return err
+			slog.Error(err.Error())
+			return fmt.Errorf("failed to scan row: %w", err)
 		}
 		items = append(items, item)
 	}
@@ -86,6 +97,6 @@ func indexHandler(c *fiber.Ctx) error {
 }
 
 type Item struct {
-	ID   int
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
