@@ -11,9 +11,9 @@
     <h1>
       Items
     </h1>
-    <form action="#">
+    <form action="#" hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">
       <textarea name="name" placeholder="Item Name" required></textarea>
-      <button hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">Add New Item</button>
+      <button>Add New Item</button>
     </form>
     <div id="list">
       {{ template "list" . }}
