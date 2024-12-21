@@ -2,16 +2,22 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"html/template"
 	"log"
+	"net/http"
 	"os"
 
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/template/html/v2"
 	_ "github.com/mattn/go-sqlite3"
 	slogfiber "github.com/samber/slog-fiber"
+
+	"github.com/gomarkdown/markdown"
+	mdhtml "github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
 )
 
 var db *sql.DB
@@ -37,6 +43,10 @@ func main() {
 
 	// Initialize standard Go html template engine
 	engine := html.New("./views", ".html")
+	engine.Funcmap = map[string]any{
+		"markdown": markdownFilter,
+	}
+
 	engine.Reload(true)
 
 	// Start fiber
@@ -44,39 +54,44 @@ func main() {
 		Views: engine,
 	})
 
+	// Ignore favicon requests
+	app.Use(favicon.New())
+
 	// Add structured logging middleware
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 	app.Use(slogfiber.New(logger))
 
 	// Define routes
 	app.Get("/", indexHandler)
-	app.Post("/add-item", itemHandler)
+	app.Post("/add-item", addItem)
 
 	// Start server
 	app.Listen(":3000")
 }
 
 // add items to the db
-func itemHandler(c *fiber.Ctx) error {
-	fmt.Print(string(c.Body()))
+func addItem(c *fiber.Ctx) error {
+	slog.Info(string(c.Body()))
 	var newItem Item
 	if err := c.BodyParser(&newItem); err != nil {
-		c.Status(500)
+		c.Status(http.StatusUnprocessableEntity)
 		return err
 	}
 
 	_, err := db.Exec("INSERT into items (name) VALUES ($1)", newItem.Name)
 	if err != nil {
-		c.Status(500)
+		c.Status(http.StatusInternalServerError)
 		return err
 	}
-	return indexHandler(c)
+	err = listItems(c)
+	return err
 }
 
-func indexHandler(c *fiber.Ctx) error {
+func getItems(c *fiber.Ctx) []Item {
 	rows, err := db.Query("SELECT id, name FROM items")
 	if err != nil {
-		return err
+		c.Status(http.StatusInternalServerError)
+		return nil
 	}
 	defer rows.Close()
 
@@ -86,17 +101,42 @@ func indexHandler(c *fiber.Ctx) error {
 		err := rows.Scan(&item.ID, &item.Name)
 		if err != nil {
 			slog.Error(err.Error())
-			return fmt.Errorf("failed to scan row: %w", err)
 		}
+
 		items = append(items, item)
 	}
+	return items
+}
 
-	return c.Render("index", fiber.Map{
-		"Items": items,
+// list the items
+func listItems(c *fiber.Ctx) error {
+	err := c.Render("list", fiber.Map{
+		"Items": getItems(c),
 	})
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	return err
+}
+
+func indexHandler(c *fiber.Ctx) error {
+	err := c.Render("index", fiber.Map{
+		"Items": getItems(c),
+	})
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	return err
 }
 
 type Item struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID   int           `json:"id"`
+	Name template.HTML `json:"name"`
+}
+
+func markdownFilter(input template.HTML) template.HTML {
+	p := parser.New()
+	doc := p.Parse([]byte(input))
+	renderer := mdhtml.NewRenderer(mdhtml.RendererOptions{Flags: mdhtml.CommonFlags})
+	return template.HTML(markdown.Render(doc, renderer))
 }

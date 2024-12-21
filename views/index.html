@@ -1,35 +1,24 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>HTMX Go Fiber PostgreSQL</title>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@latest"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-          theme: {
-            extend: {
-              colors: {
-                clifford: '#da373d',
-              }
-            }
-          }
-        }
-      </script>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@latest"></script>
+  <title>HTMX Go Fiber PostgreSQL</title>
 </head>
+
 <body>
-    <h1 class="text-3xl font-bold underline text-clifford">
-        Items
-      </h1>
-      <form hx-post="/add-item" hx-ext="json" hx-target="body">
-        <input type="text" name="name" placeholder="Item Name" required>
-        <button type="submit">Add Item</button>
+  <div>
+    <h1>
+      Items
+    </h1>
+    <form action="#">
+      <textarea name="name" placeholder="Item Name" required></textarea>
+      <button hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">Add New Item</button>
     </form>
-    <div id="items-list">
-        <ul>
-            {{ range .Items }}
-            <li>{{ .ID }}: {{ .Name }}</li>
-            {{ end }}
-        </ul>
+    <div id="list">
+      {{ template "list" . }}
     </div>
+  </div>
 </body>
+
 </html>

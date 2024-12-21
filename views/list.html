@@ -1,0 +1,6 @@
+<h2>
+    Items List
+</h2>
+{{ range .Items }}
+{{ .ID }}: {{ .Name | markdown }}
+{{ end }}

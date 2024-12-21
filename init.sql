@@ -6,7 +6,5 @@ CREATE TABLE IF NOT EXISTS items (
     name VARCHAR NOT NULL
 );
 
--- Insert sample data
-INSERT INTO items (name) VALUES ('Item 1');
-INSERT INTO items (name) VALUES ('Item 2');
-INSERT INTO items (name) VALUES ('Item 3');
+-- Seed the items if table is empty
+INSERT INTO items (name) SELECT 'item1' WHERE NOT EXISTS (SELECT 1 FROM items WHERE name = 'item1');
