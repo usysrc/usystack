@@ -63,7 +63,9 @@ func main() {
 	app.Post("/add-item", addItem)
 
 	// Start server
-	app.Listen(":3000")
+	if err := app.Listen(":3000"); err != nil {
+		slog.Error(err.Error())
+	}
 }
 
 // add items to the db
