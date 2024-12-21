@@ -2,10 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"html/template"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,10 +12,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	slogfiber "github.com/samber/slog-fiber"
 
+	"github.com/usysrc/usystack/controller"
 	"github.com/usysrc/usystack/filter"
 )
-
-var db *sql.DB
 
 func main() {
 	// Connect to PostgreSQL
@@ -25,7 +22,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db = conn
+	db := conn
 	defer db.Close()
 
 	// load 'init.sql' and execute it
@@ -59,76 +56,12 @@ func main() {
 	app.Use(slogfiber.New(logger))
 
 	// Define routes
-	app.Get("/", indexHandler)
-	app.Post("/add-item", addItem)
+	itemHandler := controller.NewItemHandler(db)
+	app.Get("/", itemHandler.IndexHandler)
+	app.Post("/add-item", itemHandler.AddItem)
 
 	// Start server
 	if err := app.Listen(":3000"); err != nil {
 		slog.Error(err.Error())
 	}
-}
-
-// add items to the db
-func addItem(c *fiber.Ctx) error {
-	slog.Info(string(c.Body()))
-	var newItem Item
-	if err := c.BodyParser(&newItem); err != nil {
-		c.Status(http.StatusUnprocessableEntity)
-		return err
-	}
-
-	_, err := db.Exec("INSERT into items (name) VALUES ($1)", newItem.Name)
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
-		return err
-	}
-	err = listItems(c)
-	return err
-}
-
-func getItems(c *fiber.Ctx) []Item {
-	rows, err := db.Query("SELECT id, name FROM items")
-	if err != nil {
-		slog.Error(err.Error())
-		c.Status(http.StatusInternalServerError)
-		return nil
-	}
-	defer rows.Close()
-
-	var items []Item
-	for rows.Next() {
-		var item Item
-		err := rows.Scan(&item.ID, &item.Name)
-		if err != nil {
-			slog.Error(err.Error())
-		}
-		items = append(items, item)
-	}
-	return items
-}
-
-// list the items
-func listItems(c *fiber.Ctx) error {
-	err := c.Render("list", fiber.Map{
-		"Items": getItems(c),
-	})
-	if err != nil {
-		slog.Error(err.Error())
-	}
-	return err
-}
-
-func indexHandler(c *fiber.Ctx) error {
-	err := c.Render("index", fiber.Map{
-		"Items": getItems(c),
-	})
-	if err != nil {
-		slog.Error(err.Error())
-	}
-	return err
-}
-
-type Item struct {
-	ID   int           `json:"id"`
-	Name template.HTML `json:"name"`
 }
