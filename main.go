@@ -14,10 +14,7 @@ import (
 	"github.com/gofiber/template/html/v2"
 	_ "github.com/mattn/go-sqlite3"
 	slogfiber "github.com/samber/slog-fiber"
-
-	"github.com/gomarkdown/markdown"
-	mdhtml "github.com/gomarkdown/markdown/html"
-	"github.com/gomarkdown/markdown/parser"
+	"github.com/usysrc/usystack/filter"
 )
 
 var db *sql.DB
@@ -44,7 +41,7 @@ func main() {
 	// Initialize standard Go html template engine
 	engine := html.New("./views", ".html")
 	engine.Funcmap = map[string]any{
-		"markdown": markdownFilter,
+		"markdown": filter.MarkdownFilter,
 	}
 
 	engine.Reload(true)
@@ -132,11 +129,4 @@ func indexHandler(c *fiber.Ctx) error {
 type Item struct {
 	ID   int           `json:"id"`
 	Name template.HTML `json:"name"`
-}
-
-func markdownFilter(input template.HTML) template.HTML {
-	p := parser.New()
-	doc := p.Parse([]byte(input))
-	renderer := mdhtml.NewRenderer(mdhtml.RendererOptions{Flags: mdhtml.CommonFlags})
-	return template.HTML(markdown.Render(doc, renderer))
 }
