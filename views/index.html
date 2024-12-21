@@ -11,7 +11,7 @@
     <h1>
       Items
     </h1>
-    <form action="#" hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">
+    <form hx-boost="true" hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">
       <textarea name="name" placeholder="Item Name" required></textarea>
       <button>Add New Item</button>
     </form>
