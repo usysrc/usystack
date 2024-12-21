@@ -4,16 +4,16 @@ import (
 	"database/sql"
 	"html/template"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
-
-	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/template/html/v2"
 	_ "github.com/mattn/go-sqlite3"
 	slogfiber "github.com/samber/slog-fiber"
+
 	"github.com/usysrc/usystack/filter"
 )
 
