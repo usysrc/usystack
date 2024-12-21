@@ -19,5 +19,6 @@
 
 # Go workspace file
 go.work
-
+ 
+# Don't check in the database
 data.db
