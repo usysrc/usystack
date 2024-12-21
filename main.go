@@ -89,6 +89,7 @@ func addItem(c *fiber.Ctx) error {
 func getItems(c *fiber.Ctx) []Item {
 	rows, err := db.Query("SELECT id, name FROM items")
 	if err != nil {
+		slog.Error(err.Error())
 		c.Status(http.StatusInternalServerError)
 		return nil
 	}
@@ -101,7 +102,6 @@ func getItems(c *fiber.Ctx) []Item {
 		if err != nil {
 			slog.Error(err.Error())
 		}
-
 		items = append(items, item)
 	}
 	return items
