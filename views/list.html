@@ -1,6 +1,8 @@
 <h2>
     Items List
 </h2>
-{{ range .Items }}
-{{ .ID }}: {{ .Name | markdown }}
-{{ end }}
+<ul>
+    {{ range .Items }}
+    <li><a href="/{{ .ID }}">{{ .ID }}</a></li>
+    {{ end }}
+</ul>

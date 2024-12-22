@@ -22,24 +22,32 @@ func Login(c *fiber.Ctx) error {
 		slog.Error(err.Error())
 		return err
 	}
-	user, err := model.GetUserByName(c, loginData)
+
+	user, err := model.GetUserByName(c, loginData.Username)
+	if err != nil {
+		slog.Error(err.Error())
+		return c.Render("loginform", fiber.Map{
+			"LoginFailed": true,
+		})
+	}
+
+	if user.Username != loginData.Username || user.Password != loginData.Password {
+		return c.Render("loginform", fiber.Map{
+			"LoginFailed": true,
+		})
+	}
+
+	sess, err := sessionStore.Get(c)
 	if err != nil {
 		slog.Error(err.Error())
 		return err
 	}
-	if user.Username == loginData.Username && user.Password == loginData.Password {
-		sess, err := sessionStore.Get(c)
-		if err != nil {
-			slog.Error(err.Error())
-			return err
-		}
-		sess.Set("userID", user.ID)
-		sess.Save()
-		return c.Render("login", fiber.Map{
-			"User": user,
-		})
-	}
-	return nil
+	sess.Set("userID", user.ID)
+	sess.Save()
+	user.LoggedIn = true
+	return c.Render("loginform", fiber.Map{
+		"User": user,
+	})
 }
 
 func Logout(c *fiber.Ctx) error {

@@ -11,13 +11,7 @@
     <h1>
       Items
     </h1>
-    {{ if .User.LoggedIn }}
-    {{ template "login" . }}
-    {{ else }}
-    <div id="login">
-      {{ template "loginform" . }}
-    </div>
-    {{ end }}
+    {{ template "loginform" . }}
     <br>
     <form hx-boost="true" hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">
       <textarea name="name" placeholder="Item Name" required></textarea>
