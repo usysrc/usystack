@@ -36,12 +36,17 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 	app.Use(slogfiber.New(logger))
 
+	// Add session middleware
+	controller.CreateSessionStore()
+
 	// Define routes
 	model.Connect()
 	defer model.Close()
 	app.Get("/", controller.IndexHandler)
 	app.Get("/:id", controller.SingleHandler)
 	app.Post("/add-item", controller.AddItem)
+	app.Post("/login", controller.Login)
+	app.Post("/logout", controller.Logout)
 
 	// Start server
 	if err := app.Listen(":3000"); err != nil {
