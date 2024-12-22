@@ -3,6 +3,7 @@ package controller
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/usysrc/usystack/model"
@@ -46,8 +47,30 @@ func IndexHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	sess, err := sessionStore.Get(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve session"})
+	}
+
+	userID := sess.Get("userID")
+	user := &model.User{}
+	if userID != nil {
+		id, err := strconv.Atoi(userID.(string))
+		if err != nil {
+			slog.Error(err.Error())
+			return err
+		}
+		user, err = model.GetUserByID(c, id)
+		if err != nil {
+			slog.Error(err.Error())
+			return err
+		}
+		user.LoggedIn = true
+	}
+
 	err = c.Render("index", fiber.Map{
 		"Items": items,
+		"User":  user,
 	})
 	if err != nil {
 		slog.Error(err.Error())
