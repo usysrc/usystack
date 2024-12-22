@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -14,18 +13,8 @@ type Item struct {
 	Name template.HTML `json:"name"`
 }
 
-type ItemStore struct {
-	db *sql.DB
-}
-
-func NewItemStore(db *sql.DB) ItemStore {
-	return ItemStore{
-		db: db,
-	}
-}
-
-func (is *ItemStore) GetAllItems(c *fiber.Ctx) ([]Item, error) {
-	rows, err := is.db.Query("SELECT id, name FROM items")
+func GetAllItems(c *fiber.Ctx) ([]Item, error) {
+	rows, err := db.Query("SELECT id, name FROM items")
 	if err != nil {
 		slog.Error(err.Error())
 		c.Status(http.StatusInternalServerError)
@@ -45,8 +34,8 @@ func (is *ItemStore) GetAllItems(c *fiber.Ctx) ([]Item, error) {
 	return items, nil
 }
 
-func (is *ItemStore) NewItem(c *fiber.Ctx, newItem Item) error {
-	_, err := is.db.Exec("INSERT into items (name) VALUES ($1)", newItem.Name)
+func NewItem(c *fiber.Ctx, newItem Item) error {
+	_, err := db.Exec("INSERT into items (name) VALUES ($1)", newItem.Name)
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return err

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"database/sql"
 	"log/slog"
 	"net/http"
 
@@ -9,37 +8,27 @@ import (
 	"github.com/usysrc/usystack/model"
 )
 
-type ItemHandler struct {
-	Items model.ItemStore
-}
-
-func NewItemHandler(db *sql.DB) ItemHandler {
-	return ItemHandler{
-		Items: model.NewItemStore(db),
-	}
-}
-
 // add an item to the db
-func (ih *ItemHandler) AddItem(c *fiber.Ctx) error {
+func AddItem(c *fiber.Ctx) error {
 	slog.Debug(string(c.Body()))
 	var newItem model.Item
 	if err := c.BodyParser(&newItem); err != nil {
 		c.Status(http.StatusUnprocessableEntity)
+		slog.Error(err.Error())
 		return err
 	}
-	err := ih.Items.NewItem(c, newItem)
+	err := model.NewItem(c, newItem)
 	if err != nil {
 		return err
 	}
-	err = ih.ListItems(c)
+	err = ListItems(c)
 	return err
 }
 
 // list the items
-func (ih *ItemHandler) ListItems(c *fiber.Ctx) error {
-	items, err := ih.Items.GetAllItems(c)
+func ListItems(c *fiber.Ctx) error {
+	items, err := model.GetAllItems(c)
 	if err != nil {
-		slog.Error(err.Error())
 		return err
 	}
 	err = c.Render("list", fiber.Map{
@@ -52,10 +41,9 @@ func (ih *ItemHandler) ListItems(c *fiber.Ctx) error {
 }
 
 // write the index
-func (ih *ItemHandler) IndexHandler(c *fiber.Ctx) error {
-	items, err := ih.Items.GetAllItems(c)
+func IndexHandler(c *fiber.Ctx) error {
+	items, err := model.GetAllItems(c)
 	if err != nil {
-		slog.Error(err.Error())
 		return err
 	}
 	err = c.Render("index", fiber.Map{
