@@ -1,8 +1,6 @@
 package main
 
 import (
-	"database/sql"
-	"log"
 	"log/slog"
 	"os"
 
@@ -14,27 +12,10 @@ import (
 
 	"github.com/usysrc/usystack/controller"
 	"github.com/usysrc/usystack/filter"
+	"github.com/usysrc/usystack/model"
 )
 
 func main() {
-	// Connect to PostgreSQL
-	conn, err := sql.Open("sqlite3", "data.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db := conn
-	defer db.Close()
-
-	// load 'init.sql' and execute it
-	file, err := os.ReadFile("init.sql")
-	if err != nil {
-		log.Fatal(err)
-	}
-	_, err = db.Exec(string(file))
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// Initialize standard Go html template engine
 	engine := html.New("./views", ".html")
 	engine.Funcmap = map[string]any{
@@ -56,9 +37,10 @@ func main() {
 	app.Use(slogfiber.New(logger))
 
 	// Define routes
-	itemHandler := controller.NewItemHandler(db)
-	app.Get("/", itemHandler.IndexHandler)
-	app.Post("/add-item", itemHandler.AddItem)
+	model.Connect()
+	defer model.Close()
+	app.Get("/", controller.IndexHandler)
+	app.Post("/add-item", controller.AddItem)
 
 	// Start server
 	if err := app.Listen(":3000"); err != nil {
