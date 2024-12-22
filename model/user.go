@@ -20,8 +20,8 @@ type User struct {
 	LoggedIn bool
 }
 
-func GetUserByName(c *fiber.Ctx, loginData LoginData) (*User, error) {
-	rows, err := db.Query("SELECT id,username, password FROM users where username = ($1)", loginData.Username)
+func GetUserByName(c *fiber.Ctx, username string) (*User, error) {
+	rows, err := db.Query("SELECT id,username, password FROM users where username = ($1)", username)
 	if err != nil {
 		slog.Error(err.Error())
 		c.Status(http.StatusInternalServerError)
@@ -32,7 +32,6 @@ func GetUserByName(c *fiber.Ctx, loginData LoginData) (*User, error) {
 	if !rows.Next() {
 		err := fmt.Errorf("User not found.")
 		slog.Error(err.Error())
-		c.Status(http.StatusNotFound)
 		return nil, err
 	}
 	err = rows.Scan(&user.ID, &user.Username, &user.Password)
