@@ -54,3 +54,28 @@ func IndexHandler(c *fiber.Ctx) error {
 	}
 	return err
 }
+
+// write single item
+func SingleHandler(c *fiber.Ctx) error {
+	type Param struct {
+		ID int `json:"id"`
+	}
+	param := Param{}
+	if err := c.ParamsParser(&param); err != nil {
+		slog.Error(err.Error())
+		return err
+	}
+	item, err := model.GetItem(c, param.ID)
+	if err != nil {
+		slog.Error(err.Error())
+		return err
+	}
+	err = c.Render("single", fiber.Map{
+		"Item": item,
+	})
+	if err != nil {
+		slog.Error(err.Error())
+		return err
+	}
+	return nil
+}

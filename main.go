@@ -40,6 +40,7 @@ func main() {
 	model.Connect()
 	defer model.Close()
 	app.Get("/", controller.IndexHandler)
+	app.Get("/:id", controller.SingleHandler)
 	app.Post("/add-item", controller.AddItem)
 
 	// Start server

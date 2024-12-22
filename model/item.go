@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -41,4 +42,28 @@ func NewItem(c *fiber.Ctx, newItem Item) error {
 		return err
 	}
 	return nil
+}
+
+func GetItem(c *fiber.Ctx, id int) (*Item, error) {
+	rows, err := db.Query("SELECT id, name FROM items where id = ($1)", id)
+	if err != nil {
+		slog.Error(err.Error())
+		c.Status(http.StatusInternalServerError)
+		return nil, err
+	}
+	defer rows.Close()
+	var item Item
+	if !rows.Next() {
+		err := fmt.Errorf("Item not found.")
+		slog.Error(err.Error())
+		c.Status(http.StatusNotFound)
+		return nil, err
+	}
+	err = rows.Scan(&item.ID, &item.Name)
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		slog.Error(err.Error())
+		return nil, err
+	}
+	return &item, nil
 }
