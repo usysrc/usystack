@@ -49,7 +49,7 @@ func main() {
 	defer model.Close()
 	app.Get("/", controller.Index)
 	app.Get("/login", controller.Login)
-	app.Get("/post/:id", middleware.AuthMiddleware, controller.Single)
+	app.Get("/item/:id", middleware.AuthMiddleware, controller.Single)
 	app.Post("/add-item", controller.AddItem)
 	app.Post("/loginuser", controller.LoginUser)
 	app.Post("/logout", controller.Logout)
