@@ -12,6 +12,7 @@ import (
 
 	"github.com/usysrc/usystack/controller"
 	"github.com/usysrc/usystack/filter"
+	"github.com/usysrc/usystack/middleware"
 	"github.com/usysrc/usystack/model"
 )
 
@@ -32,21 +33,26 @@ func main() {
 	// Ignore favicon requests
 	app.Use(favicon.New())
 
+	// Serve static files
+	app.Static("/", "./public")
+
 	// Add structured logging middleware
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 	app.Use(slogfiber.New(logger))
 
-	// Add session middleware
-	controller.CreateSessionStore()
+	// Add the session middleware
+	middleware.CreateSessionStore()
+	app.Use(middleware.SessionMiddleware)
 
 	// Define routes
 	model.Connect()
 	defer model.Close()
 	app.Get("/", controller.IndexHandler)
-	app.Get("/:id", controller.SingleHandler)
+	app.Get("/:id", middleware.AuthMiddleware, controller.SingleHandler)
 	app.Post("/add-item", controller.AddItem)
 	app.Post("/login", controller.Login)
 	app.Post("/logout", controller.Logout)
+	app.Post("/register", controller.Register)
 
 	// Start server
 	if err := app.Listen(":3000"); err != nil {

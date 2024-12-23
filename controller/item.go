@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/usysrc/usystack/model"
 )
 
@@ -47,11 +48,8 @@ func IndexHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	sess, err := sessionStore.Get(c)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve session"})
-	}
 
+	sess := c.Locals("session").(*session.Session)
 	userID := sess.Get("userID")
 	user := &model.User{}
 	if userID != nil {

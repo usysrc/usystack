@@ -1,0 +1,8 @@
+<div id="register">
+    <form hx-boost="true" hx-post="/register" hx-ext="json" hx-target="#register" hx-swap="innerHTML">
+        <input type="text" name="username" placeholder="username" required>
+        <input type="password" name="password" placeholder="password" required>
+        <button>register</button>
+        <div>{{ .ErrorDescription }}</div>
+    </form>
+</div>

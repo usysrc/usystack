@@ -9,6 +9,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/samber/slog-fiber v1.16.5
+	golang.org/x/crypto v0.31.0
 )
 
 require (

@@ -4,14 +4,16 @@
 <head>
   <script src="https://cdn.jsdelivr.net/npm/htmx.org@latest"></script>
   <title>HTMX Go Fiber PostgreSQL</title>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 
 <body>
-  <div>
+  <main>
     <h1>
       Items
     </h1>
-    {{ template "loginform" . }}
+    Login: {{ template "loginform" . }}
+    Register: {{ template "registerform" .}}
     <br>
     <form hx-boost="true" hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">
       <textarea name="name" placeholder="Item Name" required></textarea>
@@ -20,7 +22,7 @@
     <div id="list">
       {{ template "list" . }}
     </div>
-  </div>
+  </main>
 </body>
 
 </html>

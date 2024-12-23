@@ -13,11 +13,26 @@ type LoginData struct {
 	Password string `json:"password"`
 }
 
+type RegisterData struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 type User struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	ID       string `json:"id"`
 	LoggedIn bool
+}
+
+func RegisterUser(c *fiber.Ctx, registerData RegisterData) error {
+	insertQuery := `INSERT INTO users (username, password) VALUES (?, ?)`
+	_, err := db.Exec(insertQuery, registerData.Username, registerData.Password)
+	if err != nil {
+		slog.Error(err.Error())
+		return err
+	}
+	return nil
 }
 
 func GetUserByName(c *fiber.Ctx, username string) (*User, error) {
