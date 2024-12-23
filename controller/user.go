@@ -7,12 +7,42 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/usysrc/usystack/model"
+	"golang.org/x/crypto/bcrypt"
 )
 
-var sessionStore *session.Store
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
 
-func CreateSessionStore() {
-	sessionStore = session.New()
+// CheckPasswordHash verifies a password against a hashed password
+func checkPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+func Register(c *fiber.Ctx) error {
+	var registerData model.RegisterData
+	if err := c.BodyParser(&registerData); err != nil {
+		c.Status(http.StatusUnprocessableEntity)
+		slog.Error(err.Error())
+		return err
+	}
+
+	hashedPassword, err := hashPassword(registerData.Password)
+	if err != nil {
+		return c.Render("registerform", fiber.Map{})
+	}
+	registerData.Password = hashedPassword
+
+	err = model.RegisterUser(c, registerData)
+	if err != nil {
+		return c.Render("registerform", fiber.Map{
+			"ErrorDescription": "Could not register user: username already in use.",
+		})
+	}
+
+	return c.Render("registerform", fiber.Map{})
 }
 
 func Login(c *fiber.Ctx) error {
@@ -31,16 +61,15 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	if user.Username != loginData.Username || user.Password != loginData.Password {
+	if user.Username != loginData.Username || !checkPasswordHash(loginData.Password, user.Password) {
 		return c.Render("loginform", fiber.Map{
 			"LoginFailed": true,
 		})
 	}
 
-	sess, err := sessionStore.Get(c)
-	if err != nil {
-		slog.Error(err.Error())
-		return err
+	sess, ok := c.Locals("session").(*session.Session)
+	if !ok {
+		return c.Render("loginform", fiber.Map{})
 	}
 	sess.Set("userID", user.ID)
 	sess.Save()
@@ -51,10 +80,8 @@ func Login(c *fiber.Ctx) error {
 }
 
 func Logout(c *fiber.Ctx) error {
-	sess, err := sessionStore.Get(c)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not retrieve session"})
+	if sess, ok := c.Locals("session").(*session.Session); ok {
+		sess.Destroy()
 	}
-	sess.Destroy()
 	return c.Render("loginform", fiber.Map{})
 }
