@@ -43,7 +43,7 @@ func ListItems(c *fiber.Ctx) error {
 }
 
 // write the index
-func IndexHandler(c *fiber.Ctx) error {
+func Index(c *fiber.Ctx) error {
 	items, err := model.GetAllItems(c)
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func IndexHandler(c *fiber.Ctx) error {
 	err = c.Render("index", fiber.Map{
 		"Items": items,
 		"User":  user,
-	})
+	}, "layout")
 	if err != nil {
 		slog.Error(err.Error())
 	}
@@ -77,7 +77,7 @@ func IndexHandler(c *fiber.Ctx) error {
 }
 
 // write single item
-func SingleHandler(c *fiber.Ctx) error {
+func Single(c *fiber.Ctx) error {
 	type Param struct {
 		ID int `json:"id"`
 	}

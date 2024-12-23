@@ -19,10 +19,10 @@ import (
 func main() {
 	// Initialize standard Go html template engine
 	engine := html.New("./views", ".html")
-	engine.Funcmap = map[string]any{
+	// Add the markdown filter
+	engine.AddFuncMap(map[string]any{
 		"markdown": filter.MarkdownFilter,
-	}
-
+	})
 	engine.Reload(true)
 
 	// Start fiber
@@ -47,12 +47,14 @@ func main() {
 	// Define routes
 	model.Connect()
 	defer model.Close()
-	app.Get("/", controller.IndexHandler)
-	app.Get("/:id", middleware.AuthMiddleware, controller.SingleHandler)
+	app.Get("/", controller.Index)
+	app.Get("/login", controller.Login)
+	app.Get("/post/:id", middleware.AuthMiddleware, controller.Single)
 	app.Post("/add-item", controller.AddItem)
-	app.Post("/login", controller.Login)
+	app.Post("/loginuser", controller.LoginUser)
 	app.Post("/logout", controller.Logout)
-	app.Post("/register", controller.Register)
+	app.Get("/register", controller.Register)
+	app.Post("/registeruser", controller.RegisterUser)
 
 	// Start server
 	if err := app.Listen(":3000"); err != nil {

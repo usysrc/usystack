@@ -14,9 +14,11 @@ body {
 
 a {
     color: #00818A;
+    text-decoration: none;
 }
 
 main {
+    line-height: 1.5;
     max-width: 40rem;
     margin-left: auto;
     margin-right: auto;
@@ -24,8 +26,25 @@ main {
 
 input[type="text"],
 input[type="password"],
-button {
+textarea {
     background-color: #404B69;
     color: #F9F9F9;
     border: 0.5rem solid #404B69;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+button {
+    background-color: #404B69;
+    color: #F9F9F9;
+    border: none;
+    border-radius: 6px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+button:hover {
+    background-color: #00818A;
 }

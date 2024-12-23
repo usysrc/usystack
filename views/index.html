@@ -1,28 +1,16 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-  <script src="https://cdn.jsdelivr.net/npm/htmx.org@latest"></script>
-  <title>HTMX Go Fiber PostgreSQL</title>
-  <link rel="stylesheet" href="/css/styles.css">
-</head>
-
-<body>
-  <main>
-    <h1>
-      Items
-    </h1>
-    Login: {{ template "loginform" . }}
-    Register: {{ template "registerform" .}}
-    <br>
-    <form hx-boost="true" hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">
-      <textarea name="name" placeholder="Item Name" required></textarea>
-      <button>Add New Item</button>
-    </form>
-    <div id="list">
-      {{ template "list" . }}
-    </div>
-  </main>
-</body>
-
-</html>
+<h1>
+    Items
+</h1>
+{{ if not .User.LoggedIn }}
+<a href="/login">Login</a>
+<a href="/register">Register</a>
+{{ end }}
+<br>
+<br>
+<form hx-boost="true" hx-post="/add-item" hx-ext="json" hx-target="#list" hx-swap="innerHTML">
+    <textarea name="name" placeholder="Item Name" required rows="10"></textarea>
+    <button>Add New Item</button>
+</form>
+<div id="list">
+    {{ template "list" . }}
+</div>

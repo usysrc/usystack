@@ -5,9 +5,11 @@
         <button>logout</button>
     </form>
     {{ else }}
-    <form hx-boost="true" hx-post="/login" hx-ext="json" hx-target="#login" hx-swap="innerHTML">
-        <input type="text" name="username" placeholder="username" required>
-        <input type="password" name="password" placeholder="password" required>
+    <form hx-boost="true" hx-post="/loginuser" hx-ext="json" hx-target="#login" hx-swap="innerHTML">
+        Username
+        <input type="text" name="username" placeholder="" required>
+        Password
+        <input type="password" name="password" placeholder="" required>
         <button>login</button>
         {{ if .LoginFailed }}
         <div style="color:#f00">Login Failed! Please check username and password.</div>

@@ -3,6 +3,7 @@ package controller
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -21,7 +22,12 @@ func checkPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
+// the register page
 func Register(c *fiber.Ctx) error {
+	return c.Render("register", fiber.Map{}, "layout")
+}
+
+func RegisterUser(c *fiber.Ctx) error {
 	var registerData model.RegisterData
 	if err := c.BodyParser(&registerData); err != nil {
 		c.Status(http.StatusUnprocessableEntity)
@@ -45,7 +51,35 @@ func Register(c *fiber.Ctx) error {
 	return c.Render("registerform", fiber.Map{})
 }
 
+// the login page
 func Login(c *fiber.Ctx) error {
+	sess, ok := c.Locals("session").(*session.Session)
+	if !ok {
+		return c.Render("loginform", fiber.Map{})
+	}
+	userID := sess.Get("userID")
+	user := &model.User{}
+	if userID != nil {
+		id, err := strconv.Atoi(userID.(string))
+		if err != nil {
+			slog.Error(err.Error())
+			return err
+		}
+		user, err = model.GetUserByID(c, id)
+		if err != nil {
+			slog.Error(err.Error())
+			return err
+		}
+		user.LoggedIn = true
+	}
+
+	return c.Render("login", fiber.Map{
+		"User": user,
+	}, "layout")
+}
+
+// handle login of user
+func LoginUser(c *fiber.Ctx) error {
 	var loginData model.LoginData
 	if err := c.BodyParser(&loginData); err != nil {
 		c.Status(http.StatusUnprocessableEntity)
@@ -74,6 +108,7 @@ func Login(c *fiber.Ctx) error {
 	sess.Set("userID", user.ID)
 	sess.Save()
 	user.LoggedIn = true
+
 	return c.Render("loginform", fiber.Map{
 		"User": user,
 	})
